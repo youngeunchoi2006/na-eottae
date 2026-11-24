@@ -34,7 +34,21 @@ from matching import ANSWER_SCORE, DEFAULT_WEIGHTS, FIELDS, Matcher   # noqa: E4
 SITE_TITLE = 'NA는 어때?'
 LOCKED_CHART = {'displayModeBar': False, 'scrollZoom': False, 'doubleClick': False, 'showAxisDragHandles': False}
 SITE_SUBTITLE = '나와 가치관이 잘 맞는 국회의원은 누구일까'
-st.set_page_config(page_title=f'{SITE_TITLE} · {SITE_SUBTITLE}', page_icon='🏛️', layout='wide')
+# 사이트 아이콘: 연보라 → 남색 그라데이션 의사당 (static/icon.png = 브라우저 탭, static/icon.svg = 제목·메뉴)
+ICON_PNG = BASE / 'static' / 'icon.png'
+ICON_SVG = BASE / 'static' / 'icon.svg'
+st.set_page_config(page_title=f'{SITE_TITLE} · {SITE_SUBTITLE}',
+                   page_icon=str(ICON_PNG) if ICON_PNG.exists() else '🏛️', layout='wide')
+
+
+def icon_img(size):
+    """제목·메뉴에 넣을 아이콘 (그림 파일을 글 안에 바로 넣음, 파일이 없으면 이모지)"""
+    if not ICON_SVG.exists():
+        return '🏛️'
+    import base64
+    data = base64.b64encode(ICON_SVG.read_bytes()).decode()
+    return (f'<img src="data:image/svg+xml;base64,{data}" width="{size}" height="{size}" '
+            'style="vertical-align: -0.12em; margin-right: 0.25em;" alt="">')
 DATA = BASE / 'data'
 
 # 화면 꾸미기 (CSS) — 글자 크기 순서: 제목 > 부제목 > 본문 > 도움말·참고
@@ -132,6 +146,9 @@ h2, h3, h4 {color: #292827; font-weight: 600 !important; letter-spacing: -0.6px;
 
 /* 왼쪽 메뉴: 사이트 제목과 첫 메뉴 사이 여백 */
 .st-key-nav_0 {margin-top: 1.1rem;}
+
+/* 왼쪽 메뉴 사이트 제목 */
+.side-title {font-size: 2rem; font-weight: 700; color: #292827; letter-spacing: -0.5px; margin: 10px 0 14px 0;}
 
 /* 첫 화면 안내 한 문장 */
 .lead {font-size: 1.3rem; font-weight: 600; color: #1b1938; margin: 4px 0 18px 4px;}
@@ -391,7 +408,7 @@ def header():
             with st.popover(f"{auth.current_user()['name']} 님", icon=':material/account_circle:'):
                 st.button('내 정보', on_click=_go_mypage, width='stretch', key='pop_mypage')
                 st.button('로그아웃', on_click=_do_logout, width='stretch', key='pop_logout')
-    st.markdown(f'<div class="hero"><div class="hero-title">🏛️ {SITE_TITLE}</div>'
+    st.markdown(f'<div class="hero"><div class="hero-title">{icon_img(56)}{SITE_TITLE}</div>'
                 f'<div class="hero-sub">{SITE_SUBTITLE}</div></div>', unsafe_allow_html=True)
     if auth.enabled() and auth.current_user() is None and ss.get('show_login'):
         login_dialog()
@@ -414,7 +431,7 @@ def sidebar():
     if ss.get('menu') not in options:         # 로그아웃 등으로 메뉴가 사라졌으면 홈으로
         ss['menu'] = HOME
     with st.sidebar:
-        st.markdown(f'## 🏛️ {SITE_TITLE}')
+        st.markdown(f'<div class="side-title">{icon_img(34)}{SITE_TITLE}</div>', unsafe_allow_html=True)
         for i, (name, icon) in enumerate(NAV):
             if name in options:
                 st.button(name, icon=icon, key=f'nav_{i}', width='stretch', on_click=_go, args=(name,),
