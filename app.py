@@ -114,7 +114,8 @@ h2, h3, h4 {color: #292827; font-weight: 600 !important; letter-spacing: -0.6px;
 
 /* 2. 로그인: 화면 맨 오른쪽 위에 고정 (Streamlit 'Deploy' 버튼은 숨김) */
 [data-testid="stAppDeployButton"] {display: none;}
-.st-key-login_area {position: fixed; top: 10px; right: 64px; z-index: 999991; width: auto !important;}
+.st-key-login_area {display: flex !important; flex-direction: row; justify-content: flex-end; margin: -1.5rem 0 4px 0;}
+.st-key-login_area > div {width: auto !important;}
 .st-key-login_area button {border-radius: 9999px; padding: 6px 18px; min-height: 2.4rem;}
 
 /* 3. 설문 다시 하기: 칸 없이 버튼만, 가운데 */
@@ -197,6 +198,15 @@ button[kind="primary"] p, button[kind="primaryFormSubmit"] p, button[kind="prima
 .st-key-step_submit {padding: 6px 3% 0 3%;}
 .st-key-step_submit button {min-height: 3.2rem;}
 .st-key-step_submit button p {font-size: 1.25rem !important; font-weight: 700;}
+
+/* config.toml이 빠져도 기본 색이 빨강으로 돌아가지 않게: 주요 버튼·진행 막대·탭을 남색으로 고정 */
+button[kind="primary"], button[kind="primaryFormSubmit"]
+  {background-color: #1b1938 !important; border-color: #1b1938 !important; color: #fff !important;}
+button[kind="primary"]:hover, button[kind="primaryFormSubmit"]:hover
+  {background-color: #2c2963 !important; border-color: #2c2963 !important;}
+[data-testid="stProgressBarTrack"] > div {background-color: #1b1938 !important;}
+[data-baseweb="tab-highlight"] {background-color: #1b1938 !important;}
+[data-testid="stTab"][aria-selected="true"] p {color: #1b1938 !important;}
 
 /* 1. 문항 도움말 말고는 마우스를 올려도 아무것도 뜨지 않게 (표·차트 위 도구 아이콘 숨김) */
 [data-testid="stElementToolbar"] {display: none !important;}
@@ -371,9 +381,8 @@ def _do_logout():
 
 
 def header():
-    st.markdown(f'<div class="hero"><div class="hero-title">🏛️ {SITE_TITLE}</div>'
-                f'<div class="hero-sub">{SITE_SUBTITLE}</div></div>', unsafe_allow_html=True)
-    with st.container(key='login_area'):         # CSS로 화면 맨 오른쪽 위에 고정
+    # 로그인 버튼: 제목 칸 바로 위 오른쪽 끝 (화면 맨 위 Streamlit 도구 줄과 겹치지 않게 본문 안에 둠)
+    with st.container(key='login_area'):
         if not auth.enabled():
             st.caption('회원 기능 꺼짐')
         elif auth.current_user() is None:
@@ -382,6 +391,8 @@ def header():
             with st.popover(f"{auth.current_user()['name']} 님", icon=':material/account_circle:'):
                 st.button('내 정보', on_click=_go_mypage, width='stretch', key='pop_mypage')
                 st.button('로그아웃', on_click=_do_logout, width='stretch', key='pop_logout')
+    st.markdown(f'<div class="hero"><div class="hero-title">🏛️ {SITE_TITLE}</div>'
+                f'<div class="hero-sub">{SITE_SUBTITLE}</div></div>', unsafe_allow_html=True)
     if auth.enabled() and auth.current_user() is None and ss.get('show_login'):
         login_dialog()
     show_flash()
@@ -600,7 +611,7 @@ def survey_body():
 
         if qs is not None:                    # 진행 막대는 Part 3(가치관)부터
             st.progress(step / (len(steps) - 1),
-                        text=f'**Part 3 · {step} / {len(steps) - 1} 분야** · 지금까지 답한 가치관 문항 '
+                        text=f'**Part 3 · {step} / {len(steps) - 1} 분야** · 앞 단계까지 답한 가치관 문항 '
                              f'{answered} / {len(questions)}')
         with st.container(horizontal=True, horizontal_alignment='distribute', key='step_nav'):
             st.form_submit_button('◀ 이전', key='step_prev', disabled=step == 0,
