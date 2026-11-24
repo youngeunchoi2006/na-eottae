@@ -1,0 +1,11 @@
+[server]
+enableStaticServing = true
+
+[theme]
+base = "light"
+primaryColor = "#1b1938"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#fafaf8"
+textColor = "#292827"
+borderColor = "#e8e4dd"
+baseRadius = "8px"
